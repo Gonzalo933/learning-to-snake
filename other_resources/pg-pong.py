@@ -12,6 +12,8 @@
 import numpy as np
 import pickle
 import gym
+import ipdb
+import matplotlib.pyplot as plt
 
 # hyperparameters
 H = 200  # number of hidden layer neurons
@@ -19,8 +21,8 @@ batch_size = 10  # every how many episodes to do a param update?
 learning_rate = 1e-4
 gamma = 0.99  # discount factor for reward
 decay_rate = 0.99  # decay factor for RMSProp leaky sum of grad^2
-resume = True  # resume from previous checkpoint?
-render = False
+resume = False  # resume from previous checkpoint?
+render = True
 
 # model initialization
 D = 80 * 80  # input dimensionality: 80x80 grid
@@ -95,7 +97,8 @@ while True:
     cur_x = preprocess(observation)
     x = cur_x - prev_x if prev_x is not None else np.zeros(D)
     prev_x = cur_x
-
+    d = int(np.sqrt(6400))
+    breakpoint()
     # forward the policy network and sample an action from the returned probability
     aprob, h = policy_forward(x)
     action = 2 if np.random.uniform() < aprob else 3  # roll the dice!
@@ -129,9 +132,8 @@ while True:
         discounted_epr -= np.mean(discounted_epr)
         discounted_epr /= np.std(discounted_epr)
 
-        epdlogp *= (
-            discounted_epr
-        )  # modulate the gradient with advantage (PG magic happens right here.)
+        # modulate the gradient with advantage (PG magic happens right here.)
+        epdlogp *= discounted_epr
         grad = policy_backward(eph, epdlogp)
         for k in model:
             grad_buffer[k] += grad[k]  # accumulate grad over batch
