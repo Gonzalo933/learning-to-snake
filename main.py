@@ -31,7 +31,7 @@ restore_saved = True
 gamma = 0.9  # Reward Discount multiplier
 dim_hidden_layers = [5, 3]
 save_freq = 100  # keep zero if you dun want to save model
-plot_freq = 1000  # keep zero if you dun want to draw the scores
+plot_freq = 0  # keep zero if you dun want to draw the scores
 batch_size = 10  # every how many episodes to do a param update?
 model_save_path = os.path.join(os.getcwd(), "model_tf_policyGrad", "mymodel.ckpt")
 # print(envs.registry.all())
