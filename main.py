@@ -8,6 +8,7 @@ from neural_network import NeuralNetwork
 import tensorflow as tf
 import os
 import collections
+import sys
 
 # discount_rewards(np.array([1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0]))
 # returns: array([ 1., 0.96059601, 0.970299, 0.9801, 0.99, 1., 0.9801, 0.99, 1.])
@@ -24,9 +25,11 @@ def discount_rewards(r, gamma=0.99):
     return discounted_r
 
 
-render = False  # Show AI playing yes/no
+assert len(sys.argv) == 2, "Args needed"
+render = sys.argv[-1] == 1  # Show AI playing yes/no
 restore_saved = True
 gamma = 0.9  # Reward Discount multiplier
+dim_hidden_layers = [5, 3]
 save_freq = 100  # keep zero if you dun want to save model
 plot_freq = 1000  # keep zero if you dun want to draw the scores
 batch_size = 10  # every how many episodes to do a param update?
@@ -41,13 +44,13 @@ D = int((150 / downsampling) * (150 / downsampling))
 n_classes = 4
 reward_sum = 0
 max_score = 0
-Xs, hs, dlogps, drs = [], [], [], []
+Xs, dlogps, drs = [], [], []
 last_scores = collections.deque(maxlen=50000)
 episode_number = 0
 previous_x = None
 running_reward = None
 tf.reset_default_graph()
-nnet = NeuralNetwork(D, n_classes)
+nnet = NeuralNetwork(D, n_classes, dim_hidden_layers=dim_hidden_layers)
 with tf.Session() as sess:
     ckpt = tf.train.get_checkpoint_state(os.path.dirname(model_save_path))
     if ckpt and ckpt.model_checkpoint_path and restore_saved:
@@ -68,13 +71,12 @@ with tf.Session() as sess:
         # plt.imshow(X.reshape((int(X.shape[0] ** 0.5), int(X.shape[0] ** 0.5))))
         # plt.show()
         # Forward pass and get action.
-        actions_probs, hidden_layer_vals = sess.run(
-            [nnet.output_layer, nnet.hidden_layer],
-            feed_dict={nnet.input_layer: X[None, :]},
+        actions_probs, = sess.run(
+            nnet.output_layer, feed_dict={nnet.input_layer: X[None, :]}
         )
         # Sample action
         # actions_probs -> [UP, RIGHT, DOWN, LEFT]
-        action = np.random.choice(4, p=actions_probs[0])
+        action = np.random.choice(4, p=actions_probs)
         observation, reward, done, info = env.step(action)  # env.action_space.sample()
         # Set a label for the action taken as if it was the right action
         # because we still do not know if it is the right one.
@@ -86,8 +88,6 @@ with tf.Session() as sess:
         y[action] = 1
         # grad that encourages the action that was taken to be taken
         dlogps.append(y)
-        # add hidden states for gradient
-        hs.append(hidden_layer_vals)
         # add reward
         drs.append(float(reward))
         # add observation
@@ -97,10 +97,9 @@ with tf.Session() as sess:
             episode_number += 1
             # stack together all inputs, hidden states, action gradients, and rewards for this episode
             epx = np.vstack(Xs)
-            eph = np.vstack(hs)
             epdlogp = np.vstack(dlogps)
             epr = np.vstack(drs)
-            Xs, hs, dlogps, drs = [], [], [], []  # reset array memory
+            Xs, dlogps, drs = [], [], []  # reset array memory
             # compute the discounted reward backwards through time
             discounted_epr = discount_rewards(epr, gamma=gamma)
             # standardize the rewards to be unit normal (helps control the gradient estimator variance)

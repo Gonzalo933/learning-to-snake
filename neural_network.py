@@ -10,19 +10,14 @@ def my_cross_entropy(y_true, y_pred):
 class NeuralNetwork:
     def __init__(self, D_problem, n_classes, dim_hidden_layers=[3], learning_rate=1e-4):
         self.input_layer = tf.placeholder(shape=[None, D_problem], dtype=tf.float32)
-
+        last_layer = self.input_layer
         for dim_layer in dim_hidden_layers:
-            self.hidden_layer = tf_layers.fully_connected(
-                self.input_layer,
-                dim_layer,
-                activation_fn=tf.nn.relu,
-                biases_initializer=None,
+            hidden_layer = tf_layers.fully_connected(
+                last_layer, dim_layer, activation_fn=tf.nn.relu, biases_initializer=None
             )
+            last_layer = hidden_layer
         self.output_layer_before_softmax = tf_layers.fully_connected(
-            self.hidden_layer,
-            n_classes,
-            activation_fn=tf.nn.softmax,
-            biases_initializer=None,
+            last_layer, n_classes, activation_fn=tf.nn.softmax, biases_initializer=None
         )
         # As softmax_cross_entropy_with_logits_v2 requires the logits
         #  before passing them to the softmax activation func.
