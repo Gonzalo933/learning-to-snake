@@ -26,7 +26,7 @@ def discount_rewards(r, gamma=0.99):
 
 
 assert len(sys.argv) == 2, "Args needed"
-render = sys.argv[-1] == 1  # Show AI playing yes/no
+render = int(sys.argv[-1]) == 1  # Show AI playing yes/no
 restore_saved = True
 gamma = 0.9  # Reward Discount multiplier
 dim_hidden_layers = [5, 3]
