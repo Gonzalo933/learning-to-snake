@@ -16,4 +16,4 @@ set -eo pipefail -o nounset
 
 
 ###
-python main.py 0
+python main.py 0 0
