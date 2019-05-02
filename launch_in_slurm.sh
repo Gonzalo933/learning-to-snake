@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH -e logs/snake.err
-#SBATCH -o logs/snake.out
+#SBATCH -e /home/ghdez933/logs/snake.err
+#SBATCH -o /home/ghdez933/logs/snake.out
 #SBATCH -J snake
 
 #SBATCH --partition=cccmd
