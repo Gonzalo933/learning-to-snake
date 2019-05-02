@@ -2,6 +2,14 @@ import numpy as np
 
 
 def preprocess_board(board, downsampling, binary_colors=False):
+    ###### DEBUG SPACE
+    # import matplotlib.pyplot as plt
+    #
+    # plt.title("ASD")
+    # plt.imshow(board)
+    # plt.show()
+    # breakpoint()
+    #####
     board = board[::downsampling, ::downsampling, :]  # downsample by factor of 2
     if binary_colors:
         food_color = 1.0

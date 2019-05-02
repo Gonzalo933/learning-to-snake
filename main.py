@@ -4,7 +4,7 @@ from gym import envs
 from utils import preprocess_board
 import numpy as np
 import matplotlib.pyplot as plt
-from neural_network import NeuralNetwork
+from neural_network import NeuralNetwork, ConvolutionalNeuralNetwork
 import tensorflow as tf
 import os
 import collections
@@ -25,22 +25,32 @@ def discount_rewards(r, gamma=0.99):
     return discounted_r
 
 
-assert len(sys.argv) == 2, "Args needed"
-render = int(sys.argv[-1]) == 1  # Show AI playing yes/no
+assert len(sys.argv) == 3, "Args needed"
+use_convolutional = int(sys.argv[1]) == 1
+print(f"Using convolutional? {use_convolutional}")
+render = int(sys.argv[2]) == 1  # Show AI playing yes/no
 restore_saved = True
 gamma = 0.9  # Reward Discount multiplier
 dim_hidden_layers = [5, 3]
 save_freq = 100  # keep zero if you dun want to save model
 plot_freq = 5000  # keep zero if you dun want to draw the scores
 batch_size = 10  # every how many episodes to do a param update?
-model_save_path = os.path.join(os.getcwd(), "model_tf_policyGrad", "mymodel.ckpt")
+if use_convolutional:
+    model_save_path = os.path.join(
+        os.getcwd(), "model_tf_policyGrad_conv", "mymodel.ckpt"
+    )
+else:
+    model_save_path = os.path.join(os.getcwd(), "model_tf_policyGrad", "mymodel.ckpt")
 # print(envs.registry.all())
 # Construct Environment
 env = gym.make("snake-v0")
 
 observation = env.reset()
-downsampling = 2
-D = int((150 / downsampling) * (150 / downsampling))
+if use_convolutional:
+    downsampling = 4  # Set to 9 to set everything to 1 pixel wide.
+else:
+    downsampling = 9  # Set to 9 to set everything to 1 pixel wide.
+D = int(np.ceil(150 / downsampling) ** 2)
 n_classes = 4
 reward_sum = 0
 max_score = 0
@@ -50,7 +60,10 @@ episode_number = 0
 previous_x = None
 running_reward = None
 tf.reset_default_graph()
-nnet = NeuralNetwork(D, n_classes, dim_hidden_layers=dim_hidden_layers)
+if use_convolutional:
+    nnet = ConvolutionalNeuralNetwork(D, n_classes)
+else:
+    nnet = NeuralNetwork(D, n_classes, dim_hidden_layers=dim_hidden_layers)
 with tf.Session() as sess:
     ckpt = tf.train.get_checkpoint_state(os.path.dirname(model_save_path))
     if ckpt and ckpt.model_checkpoint_path and restore_saved:
@@ -98,7 +111,7 @@ with tf.Session() as sess:
             # stack together all inputs, hidden states, action gradients, and rewards for this episode
             epx = np.vstack(Xs)
             epdlogp = np.vstack(dlogps)
-            epr = np.vstack(drs)
+            epr = np.stack(drs)
             Xs, dlogps, drs = [], [], []  # reset array memory
             # compute the discounted reward backwards through time
             discounted_epr = discount_rewards(epr, gamma=gamma)
@@ -133,7 +146,15 @@ with tf.Session() as sess:
                 # plt.clf()
                 fig = plt.figure(num=2)
                 plt.plot(last_scores, ".")
-                plt.savefig("scores_summary.png")
+                plt.text(
+                    0.8,
+                    0.2,
+                    f"num games: {episode_number} running mean: {running_reward:.3f} max score: {max_score}",
+                )
+                if use_convolutional:
+                    plt.savefig("scores_summary_conv.png")
+                else:
+                    plt.savefig("scores_summary.png")
                 plt.title("Tensorflow policy gradient")
                 plt.pause(0.0001)
                 plt.close(fig)

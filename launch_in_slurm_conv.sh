@@ -1,13 +1,13 @@
 #!/bin/bash
 
-#SBATCH -e logs/snake.err
-#SBATCH -o logs/snake.out
-#SBATCH -J snake
+#SBATCH -e logs/snake_conv.err
+#SBATCH -o logs/snake_conv.out
+#SBATCH -J snake_conv
 
 #SBATCH --partition=cccmd
-#SBATCH --mem=5G
+#SBATCH --mem=6G
 #SBATCH --cpu-freq=high
-#SBATCH --cpus-per-task=2
+#SBATCH --cpus-per-task=4
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=gonzalo.hernandez@uam.es
 #SBATCH --account=ada2_serv
