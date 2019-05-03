@@ -18,12 +18,12 @@ class NeuralNetwork:
                 last_layer, dim_layer, activation_fn=tf.nn.relu, biases_initializer=None
             )
             last_layer = hidden_layer
-        self.output_layer_before_softmax = tf_layers.fully_connected(
-            last_layer, n_classes, activation_fn=tf.nn.softmax, biases_initializer=None
+        self.logits = tf_layers.fully_connected(
+            last_layer, n_classes, activation_fn=None, biases_initializer=None
         )
         # As softmax_cross_entropy_with_logits_v2 requires the logits
         #  before passing them to the softmax activation func.
-        self.output_layer = tf.nn.softmax(self.output_layer_before_softmax)
+        self.output_layer = tf.nn.softmax(self.logits)
 
         self.actual_actions = tf.placeholder(
             shape=[None, 4], dtype=tf.int32, name="actions"
@@ -31,12 +31,12 @@ class NeuralNetwork:
         self.game_rewards = tf.placeholder(shape=[None], dtype=tf.float32, name="rewards")
 
         # self.loss = tf.nn.softmax_cross_entropy_with_logits_v2(
-        #    labels=self.actual_actions, logits=self.output_layer_before_softmax
+        #    labels=self.actual_actions, logits=self.logits
         # )
-        # self.policy_loss = -tf.reduce_mean(self.loss * self.game_rewards)
+        # self.policy_loss2 = -tf.reduce_mean(self.loss * self.game_rewards)
         self.policy_loss = -1 * tf.losses.softmax_cross_entropy(
             onehot_labels=self.actual_actions,
-            logits=self.output_layer_before_softmax,
+            logits=self.logits,
             weights=self.game_rewards,
             reduction=tf.losses.Reduction.SUM_OVER_BATCH_SIZE,
         )
