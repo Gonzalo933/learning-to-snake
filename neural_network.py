@@ -54,7 +54,7 @@ class NeuralNetwork:
 
 
 class ConvolutionalNeuralNetwork:
-    def __init__(self, D_problem, n_classes, learning_rate=1e-3):
+    def __init__(self, D_problem, n_classes, learning_rate=1e-4):
         self.input_layer = tf.placeholder(
             shape=[None, D_problem, D_problem, 2], dtype=tf.float32, name="X"
         )
