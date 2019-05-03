@@ -8,9 +8,13 @@ def my_cross_entropy(y_true, y_pred):
 
 
 class NeuralNetwork:
-    def __init__(self, D_problem, n_classes, dim_hidden_layers=[3], learning_rate=1e-3):
+    def __init__(self, D_problem, n_classes, dim_hidden_layers=[3], learning_rate=1e-4):
         self.input_layer = tf.placeholder(
             shape=[None, D_problem], dtype=tf.float32, name="X"
+        )
+        self.game_rewards = tf.placeholder(shape=[None], dtype=tf.float32, name="rewards")
+        self.actual_actions = tf.placeholder(
+            shape=[None, 4], dtype=tf.int32, name="actions"
         )
         last_layer = self.input_layer
         for dim_layer in dim_hidden_layers:
@@ -24,11 +28,6 @@ class NeuralNetwork:
         # As softmax_cross_entropy_with_logits_v2 requires the logits
         #  before passing them to the softmax activation func.
         self.output_layer = tf.nn.softmax(self.logits)
-
-        self.actual_actions = tf.placeholder(
-            shape=[None, 4], dtype=tf.int32, name="actions"
-        )
-        self.game_rewards = tf.placeholder(shape=[None], dtype=tf.float32, name="rewards")
 
         # self.loss = tf.nn.softmax_cross_entropy_with_logits_v2(
         #    labels=self.actual_actions, logits=self.logits

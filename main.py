@@ -30,7 +30,7 @@ use_convolutional = int(sys.argv[1]) == 1
 print(f"Using convolutional? {use_convolutional}")
 render = int(sys.argv[2]) == 1  # Show AI playing yes/no
 restore_saved = True
-gamma = 0.9  # Reward Discount multiplier
+gamma = 0.99  # Reward Discount multiplier
 dim_hidden_layers = [5, 3]
 save_freq = 100  # keep zero if you dun want to save model
 plot_freq = 5000  # keep zero if you dun want to draw the scores
@@ -44,20 +44,22 @@ else:
 # print(envs.registry.all())
 # Construct Environment
 env = gym.make("snake-v0")
-env.random_init = False
+env.grid_size = [12, 12]
 env.unit_gap = 0
+env.random_init = False
+frames_to_feed = 2
 observation = env.reset()
 if use_convolutional:
-    downsampling = 4  # Set to 9 to set everything to 1 pixel wide.
+    downsampling = 1  # Set to 9 to set everything to 1 pixel wide.
 else:
     downsampling = 9  # Set to 9 to set everything to 1 pixel wide.
 last_frame = preprocess_board(observation, downsampling)
-D = int(np.ceil(150 / downsampling) ** 2) * 2
+D = int(np.ceil(observation.shape[0] / downsampling) ** 2) * frames_to_feed
 if use_convolutional:
     D = int((D / 2) ** 0.5)
 n_classes = 4
 reward_sum = 0
-max_score = 0
+max_score = -1
 Xs, dlogps, drs = [], [], []
 last_scores = collections.deque(maxlen=50000)
 episode_number = 0
@@ -83,10 +85,13 @@ with tf.Session() as sess:
         actual_frame = preprocess_board(observation, downsampling)
         # X = current_x - previous_x if previous_x is not None else np.zeros(D)
         # plt.figure(0)
-        # test = np.concatenate([last_frame, X])
-        # plt.imshow(X.reshape((int(X.shape[0] ** 0.5), int(X.shape[0] ** 0.5))))
+        ## test = np.concatenate([last_frame, X])
+        # plt.imshow(
+        #    actual_frame.reshape(
+        #        int(actual_frame.shape[0] ** 0.5), int(actual_frame.shape[0] ** 0.5)
+        #    )
+        # )
         # plt.show()
-        # breakpoint()
         # Forward pass and get action.
         if use_convolutional:
             X = np.stack(
@@ -161,7 +166,7 @@ with tf.Session() as sess:
                 plt.text(
                     0.8,
                     0.2,
-                    f"num games: {episode_number} running mean: {running_reward:.3f} max score: {max_score}",
+                    f"num games: {episode_number} running mean: {running_reward:.3f} max score: {max_score + 1}",
                 )
                 if use_convolutional:
                     plt.savefig("scores_summary_conv.png")
@@ -178,7 +183,7 @@ with tf.Session() as sess:
             )
             max_score = reward_sum if reward_sum > max_score else max_score
             print(
-                f"Resetting env. episode {episode_number} reward {reward_sum}. running mean: {running_reward:.3f} max score: {max_score}"
+                f"Resetting env. episode {episode_number} reward {reward_sum}. running mean: {running_reward:.3f} max score: {max_score + 1}"
             )
             if plot_freq:
                 last_scores.append(reward_sum + 1.0)
