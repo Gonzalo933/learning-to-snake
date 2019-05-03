@@ -8,7 +8,7 @@ def my_cross_entropy(y_true, y_pred):
 
 
 class NeuralNetwork:
-    def __init__(self, D_problem, n_classes, dim_hidden_layers=[3], learning_rate=1e-4):
+    def __init__(self, D_problem, n_classes, dim_hidden_layers=[3], learning_rate=1e-3):
         self.input_layer = tf.placeholder(
             shape=[None, D_problem], dtype=tf.float32, name="X"
         )
@@ -55,19 +55,20 @@ class NeuralNetwork:
 
 
 class ConvolutionalNeuralNetwork:
-    def __init__(self, D_problem, n_classes, learning_rate=1e-4):
+    def __init__(self, D_problem, n_classes, learning_rate=1e-3):
         self.input_layer = tf.placeholder(
-            shape=[None, D_problem], dtype=tf.float32, name="X"
+            shape=[None, D_problem, D_problem, 2], dtype=tf.float32, name="X"
         )
         self.actual_actions = tf.placeholder(
             shape=[None, 4], dtype=tf.int32, name="actions"
         )
         self.game_rewards = tf.placeholder(shape=[None], dtype=tf.float32, name="rewards")
-        D = int(np.sqrt(D_problem))
-        input_layer_reshaped = tf.reshape(self.input_layer, [-1, D, D, 1])
+        # D = int(np.sqrt(D_problem))
+        #
+        # input_layer_reshaped = tf.reshape(self.input_layer, [-1, D, D, 2])
         # Convolutional Layer #1
         conv1 = tf.layers.conv2d(
-            inputs=input_layer_reshaped,
+            inputs=self.input_layer,
             filters=32,
             kernel_size=[5, 5],
             padding="same",

@@ -44,13 +44,17 @@ else:
 # print(envs.registry.all())
 # Construct Environment
 env = gym.make("snake-v0")
-
+env.random_init = False
+env.unit_gap = 0
 observation = env.reset()
 if use_convolutional:
     downsampling = 4  # Set to 9 to set everything to 1 pixel wide.
 else:
     downsampling = 9  # Set to 9 to set everything to 1 pixel wide.
-D = int(np.ceil(150 / downsampling) ** 2)
+last_frame = preprocess_board(observation, downsampling)
+D = int(np.ceil(150 / downsampling) ** 2) * 2
+if use_convolutional:
+    D = int((D / 2) ** 0.5)
 n_classes = 4
 reward_sum = 0
 max_score = 0
@@ -76,21 +80,29 @@ with tf.Session() as sess:
     for indx, grad in enumerate(grad_buffer):
         grad_buffer[indx] = grad * 0
     while True:
-        if render:
-            env.render()
-        X = preprocess_board(observation, downsampling, binary_colors=False)
+        actual_frame = preprocess_board(observation, downsampling)
         # X = current_x - previous_x if previous_x is not None else np.zeros(D)
         # plt.figure(0)
+        # test = np.concatenate([last_frame, X])
         # plt.imshow(X.reshape((int(X.shape[0] ** 0.5), int(X.shape[0] ** 0.5))))
         # plt.show()
+        # breakpoint()
         # Forward pass and get action.
-        actions_probs, = sess.run(
-            nnet.output_layer, feed_dict={nnet.input_layer: X[None, :]}
-        )
+        if use_convolutional:
+            X = np.stack(
+                [last_frame.reshape((D, D)), actual_frame.reshape((D, D))], axis=2
+            )
+            X = X.reshape((1, X.shape[0], X.shape[1], X.shape[2]))
+        else:
+            X = np.concatenate([last_frame, actual_frame])[None, :]
+        actions_probs, = sess.run(nnet.output_layer, feed_dict={nnet.input_layer: X})
+        last_frame = actual_frame
         # Sample action
         # actions_probs -> [UP, RIGHT, DOWN, LEFT]
         action = np.random.choice(4, p=actions_probs)
         observation, reward, done, info = env.step(action)  # env.action_space.sample()
+        if render:
+            env.render()
         # Set a label for the action taken as if it was the right action
         # because we still do not know if it is the right one.
         # print(f"Reward: {reward}")
