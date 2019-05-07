@@ -16,10 +16,14 @@ def discount_rewards(r, gamma=0.99):
     """ take 1D float array of rewards and compute discounted reward """
     discounted_r = np.zeros_like(r)
     running_add = 0
+    food_obtained = (r == 1).sum()
     for t in reversed(range(0, r.size)):
-        if r[t] != 0:
+        if r[t] == -1:
             # reset the sum, since this was a game boundary (pong specific!)
             running_add = 0
+        elif r[t] == 1:
+            food_obtained -= 1
+            running_add = food_obtained
         running_add = running_add * gamma + r[t]
         discounted_r[t] = running_add
     return discounted_r
@@ -29,12 +33,12 @@ assert len(sys.argv) == 3, "Args needed"
 use_convolutional = int(sys.argv[1]) == 1
 print(f"Using convolutional? {use_convolutional}")
 render = int(sys.argv[2]) == 1  # Show AI playing yes/no
-restore_saved = True
-gamma = 0.75  # Reward Discount multiplier
-dim_hidden_layers = [12, 8, 5]
-learning_rate = 1e-5
+restore_saved = False
+gamma = 0.4  # Reward Discount multiplier
+dim_hidden_layers = [12, 10, 5]
+learning_rate = 1e-4
 save_freq = 100  # keep zero if you dun want to save model
-plot_freq = 1000  # keep zero if you dun want to draw the scores
+plot_freq = 500  # keep zero if you dun want to draw the scores
 batch_size = 10  # every how many episodes to do a param update?
 if use_convolutional:
     model_save_path = os.path.join(
@@ -47,13 +51,13 @@ else:
 env = gym.make("snake-v0")
 env.grid_size = [12, 12]
 env.unit_gap = 0
-env.random_init = True
-frames_to_feed = 2
+env.random_init = False
+frames_to_feed = 1
 observation = env.reset()
 if use_convolutional:
     downsampling = 1  # Set to 9 to set everything to 1 pixel wide.
 else:
-    downsampling = 9  # Set to 9 to set everything to 1 pixel wide.
+    downsampling = 1  # Set to 9 to set everything to 1 pixel wide.
 last_frame = preprocess_board(observation, downsampling)
 D = int(np.ceil(observation.shape[0] / downsampling) ** 2) * frames_to_feed
 if use_convolutional:
@@ -102,7 +106,8 @@ with tf.Session() as sess:
             )
             X = X.reshape((1, X.shape[0], X.shape[1], X.shape[2]))
         else:
-            X = np.concatenate([last_frame, actual_frame])[None, :]
+            # X = np.concatenate([last_frame, actual_frame])[None, :]
+            X = actual_frame[None, :]
         actions_probs, = sess.run(nnet.output_layer, feed_dict={nnet.input_layer: X})
         last_frame = actual_frame
         # Sample action
@@ -129,9 +134,9 @@ with tf.Session() as sess:
         if done:
             episode_number += 1
             # stack together all inputs, hidden states, action gradients, and rewards for this episode
-            epx = np.vstack(Xs)
-            epdlogp = np.vstack(dlogps)
-            epr = np.stack(drs)
+            epx = np.vstack(Xs)[:-1]
+            epdlogp = np.vstack(dlogps)[:-1]
+            epr = np.stack(drs)[:-1]
             Xs, dlogps, drs = [], [], []  # reset array memory
             # compute the discounted reward backwards through time
             discounted_epr = discount_rewards(epr, gamma=gamma)
