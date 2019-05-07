@@ -32,7 +32,7 @@ render = int(sys.argv[2]) == 1  # Show AI playing yes/no
 restore_saved = True
 gamma = 0.75  # Reward Discount multiplier
 dim_hidden_layers = [12, 8, 5]
-learning_rate = 1e-4
+learning_rate = 1e-5
 save_freq = 100  # keep zero if you dun want to save model
 plot_freq = 1000  # keep zero if you dun want to draw the scores
 batch_size = 10  # every how many episodes to do a param update?

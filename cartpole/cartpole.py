@@ -28,7 +28,7 @@ restore_saved = True
 gamma = 0.95  # Reward Discount multiplier
 dim_hidden_layers = [10, 5]
 save_freq = 200  # keep zero if you dun want to save model
-plot_freq = 2000  # keep zero if you dun want to draw the scores
+plot_freq = 300  # keep zero if you dun want to draw the scores
 batch_size = 10  # every how many episodes to do a param update?
 learning_rate = 1e-3
 model_save_path = os.path.join(os.getcwd(), "model_tf_policyGrad", "mymodel.ckpt")
@@ -142,7 +142,7 @@ with tf.Session() as sess:
             solved = running_mean >= 195
             if plot_freq and not (episode_number % plot_freq):
                 fig = plt.figure(num=2)
-                plt.plot(last_scores, "-")
+                plt.plot(last_scores, ",")
                 plt.plot(means_to_plot, "-")
                 plt.text(
                     0.01,
