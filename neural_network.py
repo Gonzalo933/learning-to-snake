@@ -33,23 +33,23 @@ class NeuralNetwork:
         #    labels=self.actual_actions, logits=self.logits
         # )
         # self.policy_loss2 = -tf.reduce_mean(self.loss * self.game_rewards)
-        self.policy_loss = -1 * tf.losses.softmax_cross_entropy(
+        self.policy_loss = tf.losses.softmax_cross_entropy(
             onehot_labels=self.actual_actions,
             logits=self.logits,
             weights=self.game_rewards,
             reduction=tf.losses.Reduction.SUM_OVER_BATCH_SIZE,
         )
-        w_variables = tf.trainable_variables()
-        self.gradients = []
-        for indx, w in enumerate(w_variables):
-            w_holder_var = tf.placeholder(tf.float32, name="w_" + str(indx))
-            self.gradients.append(w_holder_var)
-
-        self.all_gradients = tf.gradients(self.policy_loss, w_variables)
-        # optimizer = tf.train.RMSPropOptimizer(decay = decay_rate, learning_rate=learning_rate)
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-        self.apply_grads = optimizer.apply_gradients(zip(self.gradients, w_variables))
-
+        self.train_step = tf.train.AdamOptimizer(learning_rate).minimize(self.policy_loss)
+        # w_variables = tf.trainable_variables()
+        # self.gradients = []
+        # for indx, w in enumerate(w_variables):
+        #    w_holder_var = tf.placeholder(tf.float32, name="w_" + str(indx))
+        #    self.gradients.append(w_holder_var)
+        #
+        # self.all_gradients = tf.gradients(self.policy_loss, w_variables)
+        ## optimizer = tf.train.RMSPropOptimizer(decay = decay_rate, learning_rate=learning_rate)
+        # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        # self.apply_grads = optimizer.apply_gradients(zip(self.gradients, w_variables))
         self.saver = tf.train.Saver()
 
 
@@ -94,21 +94,22 @@ class ConvolutionalNeuralNetwork:
         logits = tf.layers.dense(inputs=dropout, units=n_classes)
         self.output_layer = tf.nn.softmax(logits)
 
-        self.policy_loss = -1 * tf.losses.softmax_cross_entropy(
+        self.policy_loss = tf.losses.softmax_cross_entropy(
             onehot_labels=self.actual_actions,
             logits=logits,
             weights=self.game_rewards,
             reduction=tf.losses.Reduction.SUM_OVER_BATCH_SIZE,
         )
-        w_variables = tf.trainable_variables()
-        self.gradients = []
-        for indx, w in enumerate(w_variables):
-            w_holder_var = tf.placeholder(tf.float32, name="w_" + str(indx))
-            self.gradients.append(w_holder_var)
-
-        self.all_gradients = tf.gradients(self.policy_loss, w_variables)
-        # optimizer = tf.train.RMSPropOptimizer(decay = decay_rate, learning_rate=learning_rate)
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-        self.apply_grads = optimizer.apply_gradients(zip(self.gradients, w_variables))
+        self.train_step = tf.train.AdamOptimizer(learning_rate).minimize(self.policy_loss)
+        # w_variables = tf.trainable_variables()
+        # self.gradients = []
+        # for indx, w in enumerate(w_variables):
+        #    w_holder_var = tf.placeholder(tf.float32, name="w_" + str(indx))
+        #    self.gradients.append(w_holder_var)
+        #
+        # self.all_gradients = tf.gradients(self.policy_loss, w_variables)
+        ## optimizer = tf.train.RMSPropOptimizer(decay = decay_rate, learning_rate=learning_rate)
+        # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        # self.apply_grads = optimizer.apply_gradients(zip(self.gradients, w_variables))
 
         self.saver = tf.train.Saver()
