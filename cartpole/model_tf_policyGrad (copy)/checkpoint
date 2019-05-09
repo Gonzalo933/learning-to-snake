@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/gonzalo/repos/learning-to-snake/cartpole/model_tf_policyGrad/mymodel.ckpt"
+all_model_checkpoint_paths: "/home/gonzalo/repos/learning-to-snake/cartpole/model_tf_policyGrad/mymodel.ckpt"

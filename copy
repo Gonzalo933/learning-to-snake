@@ -1,0 +1,4 @@
+scp ccc:/home/ghdez933/learning-to-snake/scores_summary.png .
+scp ccc:/home/ghdez933/learning-to-snake/scores_summary_conv.png .
+scp -r ccc:/home/ghdez933/learning-to-snake/model_tf_policyGrad/ .
+scp -r ccc:/home/ghdez933/learning-to-snake/model_tf_policyGrad_conv/ .
